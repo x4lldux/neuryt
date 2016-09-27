@@ -1,1 +1,1 @@
-%{"disc_union": {:hex, :disc_union, "0.1.1", "2512f4a2a3d879802c29dd167d1591573db7d2fcc9e94bf3949966696773d8a6", [:mix], []}}
+%{"disc_union": {:git, "https://github.com/X4lldux/disc_union.git", "390849337db8988f45b177cfed76cb54c1c23189", []}}

@@ -14,7 +14,7 @@ defmodule Neuryt.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger],
+    [applications: [:logger, :disc_union],
      mod: {Neuryt, []}]
   end
 
@@ -29,7 +29,7 @@ defmodule Neuryt.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-      {:disc_union, "~> 0.1.0"},
+      {:disc_union, github: "X4lldux/disc_union"},
     ]
   end
 end
