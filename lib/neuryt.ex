@@ -1,8 +1,6 @@
 defmodule Neuryt do
   use Application
 
-  # See http://elixir-lang.org/docs/stable/elixir/Application.html
-  # for more information on OTP Applications
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
 
@@ -10,6 +8,9 @@ defmodule Neuryt do
     children = [
       # Starts a worker by calling: Neuryt.Worker.start_link(arg1, arg2, arg3)
       # worker(Neuryt.Worker, [arg1, arg2, arg3]),
+
+      supervisor(Neuryt.ProcessManagerStarterSupervisor, []),
+      # worker(Neuryt.ProcessManagerStarter, [SampleProcessManager, max_count: 10], id: :sample_pm),
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

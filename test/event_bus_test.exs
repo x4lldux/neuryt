@@ -1,9 +1,3 @@
-defmodule SomeEvents do
-  use DiscUnion
-
-  defunion Event1 | Event2 in integer
-end
-
 defmodule EventBusTest do
   use ExUnit.Case, async: false
   require SomeEvents
