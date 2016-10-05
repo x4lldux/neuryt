@@ -1,4 +1,4 @@
-defmodule Neuryt.ProcessManagerStarter do
+defmodule Neuryt.ProcessManager.Starter do
   @moduledoc """
   Starts a process manger when an wake up event arrives and then sends that
   event to the newly started process. Upper limit for each worker module can be
@@ -76,7 +76,7 @@ defmodule Neuryt.ProcessManagerStarter do
   end
 
   defp send_event(event, module) do
-    Task.Supervisor.start_child(Neuryt.ProcessManagerStarter.SenderSupervisor,
+    Task.Supervisor.start_child(Neuryt.ProcessManager.SenderSupervisor,
       fn ->
         queue_name = queue_name module
         :jobs.run queue_name, fn ->
@@ -96,9 +96,6 @@ defmodule Neuryt.ProcessManagerStarter do
     import Supervisor.Spec
     queue_name = queue_name(module)
 
-    # {:ok, pid} = Supervisor.start_child(
-    #   Neuryt.ProcessManagers.lSupervisor,
-    #   worker(module, [], restart: :temporary))
     module.start_link
   end
 
