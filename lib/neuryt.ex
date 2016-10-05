@@ -6,6 +6,7 @@ defmodule Neuryt do
 
     children = [
       supervisor(Task.Supervisor, [[name: Neuryt.ProcessManager.SenderSupervisor]]),
+      supervisor(Neuryt.AggregateRoot.Supervisor, []),
 
       # worker(Neuryt.ProcessManagerStarter, [SampleProcessManager, max_count: 10], id: :sample_pm),
     ]
