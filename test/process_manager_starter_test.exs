@@ -16,6 +16,12 @@ defmodule ProcessManagerTest do
     %{pm_pid: pid}
   end
 
+  test "wake_up? function returns boolean" do
+    assert ProcessManagerExample.wake_up?(%Event{event: SomeEvents.c(Event1)}) == false
+    assert ProcessManagerExample.wake_up?(%Event{event: SomeEvents.c(Event2, self)}) == true
+  end
+
+
   test "starter listens to all events", %{pm_pid: pid} do
     assert [pid] == EventBus.list_subscribers_to_all_events
   end
@@ -44,13 +50,13 @@ defmodule ProcessManagerTest do
 
   defp kill_sender_tasks do
     Supervisor.which_children(Neuryt.ProcessManager.SenderSupervisor)
-    |> Enum.map(fn x={_, pid, _, _} ->
+    |> Enum.map(fn {_, pid, _, _} ->
       Process.monitor pid
       Process.exit pid, :kill
     end)
     |> Enum.each(fn _ ->
       receive do
-        x = {:DOWN, _, _, _, _} -> :ok
+        {:DOWN, _, _, _, _} -> :ok
       after
         500 -> :ok
       end end)

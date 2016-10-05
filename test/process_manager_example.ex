@@ -9,7 +9,7 @@ defmodule ProcessManagerExample do
     GenServer.start_link(__MODULE__,  opts)
   end
 
-  def wake_up?(%Event{event: SomeEvents.c(Event2, pid)}), do: true
+  def wake_up?(%Event{event: SomeEvents.c(Event2, _pid)}), do: true
   def wake_up?(_), do: false
 
   # Server callbacks
