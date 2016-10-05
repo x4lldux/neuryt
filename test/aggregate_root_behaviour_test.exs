@@ -18,16 +18,14 @@ defmodule ExampleAggregateRoot do
     end
   end
 
-  def apply(%ExampleAggregateRoot{items: items} = aggregate, event) do
+  def apply(event, %ExampleAggregateRoot{items: items} = aggregate) do
     Events.case event do
-      ItemAdded in item -> %ExampleAggregateRoot{aggregate |
-                                                items: [item | items]
-                                                }
+      ItemAdded in item -> %ExampleAggregateRoot{aggregate | items: [item | items]}
     end
   end
 end
 
-defmodule AggregateRootTest do
+defmodule AggregateRootBehaviourTest do
   use ExUnit.Case
   require ExampleAggregateRoot.Events
 
