@@ -8,8 +8,17 @@ defmodule Neuryt.ProcessManagerStarter do
 
   use GenServer
   @valid_options [:max_count, :jobs_opts]
+  @type option :: {:max_count, integer} | {:jobs_opts, jobs_opts}
+  @type options :: [option]
+  @type jobs_opts :: [{atom, any}]
 
   # Client API
+  @doc """
+  Starts a process manager starter.
+  Accepts a single module name or a list of module names, of process managers to
+  govern and options.
+  """
+  @spec start_link(atom, options) :: GenServer.on_start
   def start_link(module, opts \\ [max_count: 10])
   def start_link(module, opts) when is_atom module do
     start_link [module], opts
@@ -21,6 +30,10 @@ defmodule Neuryt.ProcessManagerStarter do
     GenServer.start_link(__MODULE__, {modules, queue_opts}, gen_server_opts)
   end
 
+  @doc """
+  Returns stats for defined process managers.
+  """
+  @spec stats(pid) :: %{required(atom) => %{running: integer, queued: integer, type: integer, regulators: integer}}
   def stats(pid) do
     GenServer.call(pid, :stats)
   end
