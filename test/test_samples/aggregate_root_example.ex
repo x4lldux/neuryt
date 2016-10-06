@@ -15,6 +15,8 @@ defmodule AggregateRootExample do
   def apply(%Event{event: event}, %AggregateRootExample{items: items} = aggregate) do
     Events.case event do
       ItemAdded in item -> %AggregateRootExample{aggregate | items: [item | items]}
+      ItemRemoved in item -> %AggregateRootExample{aggregate | items: (items -- [item])}
+      ItemsCleared -> %AggregateRootExample{aggregate | items: []}
     end
   end
 end

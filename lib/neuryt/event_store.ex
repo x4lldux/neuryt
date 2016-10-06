@@ -12,8 +12,8 @@ defmodule Neuryt.EventStore do
   @type reason :: any
   @type stream_id :: any
 
-  @callback save_event(Neuryt.Event.t) :: :ok | {:error, reason}
-  @callback save_events([Neuryt.Event.t]) :: :ok | {:error, reason}
+  @callback save_event(Neuryt.Event.t, stream_id) :: :ok | {:error, reason}
+  @callback save_events([Neuryt.Event.t], stream_id) :: :ok | {:error, reason}
   @callback load_all_events() :: {:ok, [Neuryt.Event.t]} | {:error, reason}
   @callback count_all_events() :: {:ok, integer} | {:error, reason}
   @callback load_stream_events(stream_id) :: {:ok, [Neuryt.Event.t]} | {:error, reason}
