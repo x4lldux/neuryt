@@ -15,11 +15,11 @@ defmodule AggregateRootRegistryTest do
     def save_events(_events, _stream_id), do: :ok
     def load_all_events(), do: {:ok, []}
     def count_all_events(), do: {:ok, 0}
-    def load_stream_events(@agg_id) do
+    def load_stream_events(stream_id=@agg_id) do
       [
-        Events.c(ItemAdded, :a),
-        Events.c(ItemAdded, :b),
-        Events.c(ItemRemoved, :b),
+        Events.c(ItemAdded, stream_id, :a),
+        Events.c(ItemAdded, stream_id, :b),
+        Events.c(ItemRemoved, stream_id, :b),
       ]
       |> Enum.map(& %Event{event: &1})
     end
