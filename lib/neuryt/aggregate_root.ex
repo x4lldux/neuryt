@@ -23,8 +23,8 @@ defmodule Neuryt.AggregateRoot do
     end
   end
 
-  @type event :: any
-  @type command :: any
+  @type event :: Neuryt.Event.t
+  @type command :: Neuryt.Command.t
   @type aggregate :: %{}
 
   @doc """

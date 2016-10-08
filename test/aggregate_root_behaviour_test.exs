@@ -21,7 +21,7 @@ defmodule AggregateRootBehaviourTest do
   end
 
   test "load from events" do
-    events = [%Event{event: AggregateRootExample.Events.c(ItemAdded, "thing")}]
+    events = [%Event{event: AggregateRootExample.Events.c(ItemAdded, Neuryt.UUID.new, "thing")}]
     aggregate = AggregateRootExample.load("id", events)
 
     assert aggregate.items == ["thing"]
