@@ -21,8 +21,19 @@ defmodule Neuryt.Event do
   @doc """
   Build new event envelope.
   """
-  @spec new(any, any) :: Neuryt.Event.t
-  def new(payload, service_data) do
+  @spec new(any) :: Neuryt.Event.t
+  def new(payload) do
+    %__MODULE__{
+      id:             Neuryt.UUID.new,
+      event:          payload,
+      predecessor_id: nil,
+      process_id:     Neuryt.UUID.new,
+      service_data:   nil,
+      created_at:     DateTime.utc_now,
+    }
+  end
+  @spec new(any, service_data: any) :: Neuryt.Event.t
+  def new(payload, service_data: service_data) do
     %__MODULE__{
       id:             Neuryt.UUID.new,
       event:          payload,
@@ -32,15 +43,26 @@ defmodule Neuryt.Event do
       created_at:     DateTime.utc_now,
     }
   end
-  @spec new(any, Neuryt.Command.t, any) :: Neuryt.Event.t
-  def new(payload, %Neuryt.Command{} = command, service_data) do
+  @spec new(any, Neuryt.Command.t) :: Neuryt.Event.t
+  def new(payload, %Neuryt.Command{} = command) do
+    %__MODULE__{
+      id:             Neuryt.UUID.new,
+      event:          payload,
+      predecessor_id: command.id,
+      process_id:     command.process_id,
+      service_data:   command.service_data,
+      created_at:     DateTime.utc_now,
+    }
+  end
+  @spec new(any, Neuryt.Command.t, service_data: any) :: Neuryt.Event.t
+  def new(payload, %Neuryt.Command{} = command, service_data: service_data) do
     %__MODULE__{
       id:             Neuryt.UUID.new,
       event:          payload,
       predecessor_id: command.id,
       process_id:     command.process_id,
       service_data:   service_data,
-        created_at:     DateTime.utc_now,
+      created_at:     DateTime.utc_now,
     }
   end
 end

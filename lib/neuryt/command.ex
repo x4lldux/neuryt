@@ -22,7 +22,18 @@ defmodule Neuryt.Command do
   Builds new command envelope.
   """
   @spec new(any, any) :: Neuryt.Command.t
-  def new(payload, service_data) do
+  def new(payload) do
+    %__MODULE__{
+      id:             Neuryt.UUID.new,
+      command:        payload,
+      predecessor_id: nil,
+      process_id:     Neuryt.UUID.new,
+      service_data:   nil,
+      created_at:     DateTime.utc_now,
+    }
+  end
+  @spec new(any, service_data: any) :: Neuryt.Command.t
+  def new(payload, service_data: service_data) do
     %__MODULE__{
       id:             Neuryt.UUID.new,
       command:        payload,
@@ -32,8 +43,19 @@ defmodule Neuryt.Command do
       created_at:     DateTime.utc_now,
     }
   end
-  @spec new(any, Neuryt.Event.t, any) :: Neuryt.Command.t
-  def new(payload, %Neuryt.Event{} = event, service_data) do
+  @spec new(any, Neuryt.Event.t) :: Neuryt.Command.t
+  def new(payload, %Neuryt.Event{} = event) do
+    %__MODULE__{
+      id:             Neuryt.UUID.new,
+      command:        payload,
+      predecessor_id: event.id,
+      process_id:     event.process_id,
+      service_data:   event.service_data,
+      created_at:     DateTime.utc_now,
+    }
+  end
+  @spec new(any, Neuryt.Event.t, service_data: any) :: Neuryt.Command.t
+  def new(payload, %Neuryt.Event{} = event, service_data: service_data) do
     %__MODULE__{
       id:             Neuryt.UUID.new,
       command:        payload,
