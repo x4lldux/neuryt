@@ -32,6 +32,7 @@ defmodule Neuryt.Mixfile do
       {:disc_union, github: "x4lldux/disc_union"},
       {:gproc, "~> 0.6.1"},
       {:jobs, github: "uwiger/jobs"},
+      {:uuid, "~> 1.1"},
     ]
   end
 end
