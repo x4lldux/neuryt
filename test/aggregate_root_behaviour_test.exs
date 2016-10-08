@@ -13,6 +13,7 @@ defmodule AggregateRootBehaviourTest do
   test "applies event" do
     aggregate = with aggregate <- AggregateRootExample.new("id"),
                      {:ok, events} <- AggregateRootExample.add_item(aggregate, "thing"),
+                     events <- Enum.map(events, fn e -> Event.new(e) end),
       do: AggregateRootExample.update(aggregate, events)
 
     assert aggregate.id == "id"

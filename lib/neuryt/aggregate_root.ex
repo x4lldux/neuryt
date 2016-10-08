@@ -23,6 +23,7 @@ defmodule Neuryt.AggregateRoot do
     end
   end
 
+  @type raw_event :: any
   @type event :: Neuryt.Event.t
   @type command :: Neuryt.Command.t
   @type aggregate :: %{}
@@ -31,7 +32,7 @@ defmodule Neuryt.AggregateRoot do
   @doc """
   Handles command sent to AR and returns list of events that will be published.
   """
-  @callback handle(command, aggregate) :: {:ok, [event]} | {:error, reason}
+  @callback handle(command, aggregate) :: {:ok, [raw_event]} | {:error, reason}
 
   @doc """
   Applies event to aggregate root's state returning new AR state.

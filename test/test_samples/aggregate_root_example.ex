@@ -11,7 +11,7 @@ defmodule AggregateRootExample do
 
   def add_item(%AggregateRootExample{} = aggregate, item) do
     case Enum.any?( aggregate.items, & &1 === item) do
-      false -> ok [Events.c(ItemAdded, aggregate.id, item) |> Event.new]
+      false -> ok [Events.c(ItemAdded, aggregate.id, item)]
       true  -> error :already_added
     end
   end
@@ -30,21 +30,21 @@ defmodule AggregateRootExample do
   def handle(%Command{command: command}, %AggregateRootExample{} = aggregate) do
     Commands.case command do
       AddItem in agg_id, item ->
-        if Enum.any?(aggregate.items, & &1 === item) do
-          error Errors.c ItemAllreadyPresent
+        if !Enum.any?(aggregate.items, & &1 === item) do
+          ok [Events.c(ItemAdded, agg_id, item)]
         else
-          ok [Events.c(ItemAdded, agg_id, item) |> Event.new(command)]
+          error Errors.c ItemAllreadyPresent
         end
 
       RemoveItem in agg_id, item ->
         if Enum.any?(aggregate.items, & &1 === item) do
-          ok [Events.c(ItemRemoved, agg_id, item) |> Event.new(command)]
+          ok [Events.c(ItemRemoved, agg_id, item)]
         else
           error Errors.c NoSuchItem
         end
 
       ClearItems in agg_id ->
-        ok [Events.c(ItemsCleared, agg_id) |> Event.new(command)]
+        ok [Events.c(ItemsCleared, agg_id)]
     end
   end
 
