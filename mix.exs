@@ -14,7 +14,7 @@ defmodule Neuryt.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger, :disc_union, :jobs],
+    [applications: [:logger, :disc_union, :jobs, :gproc],
      mod: {Neuryt, []}]
   end
 

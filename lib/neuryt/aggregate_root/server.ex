@@ -7,7 +7,12 @@ defmodule Neuryt.AggregateRoot.Server do
   def start_link(module, agg_id, events, opts \\ []) do
     opts = opts ++ @default_opts
 
-    GenServer.start_link(__MODULE__, {module, agg_id, events, opts}, name: module)
+    aggregate_server_name = {:via, :gproc, server_name(module, agg_id)}
+    GenServer.start_link(__MODULE__, {module, agg_id, events, opts}, name: aggregate_server_name)
+  end
+
+  def get_pid(aggregate, agg_id) do
+    :gproc.where server_name(aggregate, agg_id)
   end
 
   # Server callbacks
@@ -36,4 +41,7 @@ defmodule Neuryt.AggregateRoot.Server do
     {:stop, :normal, state}
   end
 
+  defp server_name(aggregate, agg_id) do
+    {:n, :l, {aggregate, agg_id}}
+  end
 end

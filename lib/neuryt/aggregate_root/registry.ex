@@ -10,8 +10,21 @@ defmodule Neuryt.AggregateRoot.Registry do
     GenServer.call(__MODULE__, :loaded_aggregates_count)
   end
 
-  def load(aggregate, agg_id, opts \\ []) do
-    GenServer.call(__MODULE__, {:load, aggregate, agg_id, opts})
+  def open(aggregate, agg_id, opts \\ []) do
+    :ok = GenServer.call(__MODULE__, {:ensure_queue_is_present, aggregate, agg_id})
+
+    {:ok, ref} = :jobs.ask queue_name(aggregate, agg_id)
+    with {:ok, pid} <- GenServer.call(__MODULE__, {:open, aggregate, agg_id, opts}),
+      do: {:ok, ref, pid}
+  end
+
+  def release(ref) do
+    try do
+      :jobs.done(ref)
+    catch
+      _, _ -> :ok
+    end
+    :ok
   end
 
   # Server callbacks
@@ -26,13 +39,18 @@ defmodule Neuryt.AggregateRoot.Registry do
     {:reply, count, state}
   end
 
-  def handle_call({:load, aggregate, agg_id, opts}, _from, state) do
-    res = case Process.whereis aggregate do
+  def handle_call({:ensure_queue_is_present, aggregate, agg_id}, _from, state) do
+    add_queue aggregate, agg_id
+    {:reply, :ok, state}
+  end
+
+  def handle_call({:open, aggregate, agg_id, opts}, _from, state) do
+    res = case Neuryt.AggregateRoot.Server.get_pid(aggregate, agg_id) do
             pid when is_pid pid ->
               GenServer.cast pid, :asked_for
               {:ok, pid}
             _ ->
-              add_queue aggregate
+              add_queue aggregate, agg_id
               all_events = load_all_events agg_id
               Supervisor.start_child Neuryt.AggregateRoot.ServerSupervisor,
                 [aggregate, agg_id, all_events, opts]
@@ -46,8 +64,8 @@ defmodule Neuryt.AggregateRoot.Registry do
     event_store.load_stream_events(agg_id)
   end
 
-  defp add_queue(aggregate) do
-    queue_name = queue_name(aggregate)
+  defp add_queue(aggregate, agg_id) do
+    queue_name = queue_name(aggregate, agg_id)
     case :jobs.queue_info queue_name do
       :undefined ->
         :jobs.add_queue queue_name, standard_counter: 1
@@ -56,7 +74,7 @@ defmodule Neuryt.AggregateRoot.Registry do
     end
   end
 
-  defp queue_name(aggregate) do
-    {:ar_queue, aggregate}
+  defp queue_name(aggregate, agg_id) do
+    {:ar_queue, aggregate, agg_id}
   end
 end
