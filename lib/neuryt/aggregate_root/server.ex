@@ -8,11 +8,20 @@ defmodule Neuryt.AggregateRoot.Server do
     opts = opts ++ @default_opts
 
     aggregate_server_name = {:via, :gproc, server_name(module, agg_id)}
-    GenServer.start_link(__MODULE__, {module, agg_id, events, opts}, name: aggregate_server_name)
+    GenServer.start_link(__MODULE__, {module, agg_id, events, opts},
+      name: aggregate_server_name)
+  end
+
+  def server_name(aggregate, agg_id) do
+    {:n, :l, {aggregate, agg_id}}
   end
 
   def get_pid(aggregate, agg_id) do
     :gproc.where server_name(aggregate, agg_id)
+  end
+
+  def asked_for(ar_pid) do
+    GenServer.cast ar_pid, :asked_for
   end
 
   # Server callbacks
@@ -32,16 +41,12 @@ defmodule Neuryt.AggregateRoot.Server do
   end
 
   def handle_cast(:asked_for, state) do # just as a safety mechanism for
-                                        # situation when a slow client asks
+                                        # situations when a slow client asks
                                         # before timeout on idle
     {:noreply, state, state.idle_timeout}
   end
 
   def handle_info(:timeout, state) do
     {:stop, :normal, state}
-  end
-
-  defp server_name(aggregate, agg_id) do
-    {:n, :l, {aggregate, agg_id}}
   end
 end

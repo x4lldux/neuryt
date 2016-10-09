@@ -27,6 +27,10 @@ defmodule Neuryt.AggregateRoot.Registry do
     :ok
   end
 
+  def get_aggregate_root_pid(aggregate, agg_id) do
+    Neuryt.AggregateRoot.Server.get_pid(aggregate, agg_id)
+  end
+
   # Server callbacks
   def init(:ok) do
     {:ok, []}
@@ -45,9 +49,10 @@ defmodule Neuryt.AggregateRoot.Registry do
   end
 
   def handle_call({:open, aggregate, agg_id, opts}, _from, state) do
-    res = case Neuryt.AggregateRoot.Server.get_pid(aggregate, agg_id) do
+    res = case get_aggregate_root_pid(aggregate, agg_id) do
             pid when is_pid pid ->
-              GenServer.cast pid, :asked_for
+              Neuryt.AggregateRoot.Server.asked_for pid # prolong activity, in
+              # case idle-timeout would occur right after returning AR's pid
               {:ok, pid}
             _ ->
               add_queue aggregate, agg_id
@@ -61,7 +66,8 @@ defmodule Neuryt.AggregateRoot.Registry do
 
   defp load_all_events(agg_id) do
     event_store = Application.get_env :neuryt, :event_store
-    event_store.load_stream_events(agg_id)
+    {:ok, events} = event_store.load_stream_events(agg_id)
+    events
   end
 
   defp add_queue(aggregate, agg_id) do
