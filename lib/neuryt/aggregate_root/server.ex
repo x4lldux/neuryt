@@ -20,6 +20,18 @@ defmodule Neuryt.AggregateRoot.Server do
     :gproc.where server_name(aggregate, agg_id)
   end
 
+  def get_aggregate_state(ar_pid) do
+    GenServer.call ar_pid, :get_aggregate_state
+  end
+
+  def handle_command(ar_pid, %Neuryt.Command{} = command) do
+    GenServer.call ar_pid, {:handle_command, command}
+  end
+
+  def apply_events(ar_pid, events) do
+    GenServer.call(ar_pid, {:apply_events, events})
+  end
+
   def asked_for(ar_pid) do
     GenServer.cast ar_pid, :asked_for
   end
@@ -29,6 +41,8 @@ defmodule Neuryt.AggregateRoot.Server do
     idle_timeout = Keyword.get opts, :idle_timeout
     ar_state = module.load(agg_id, events)
     state = %{
+      module: module,
+      agg_id: agg_id,
       idle_timeout: idle_timeout,
       ar_state: ar_state,
     }
@@ -36,8 +50,23 @@ defmodule Neuryt.AggregateRoot.Server do
     {:ok, state, state.idle_timeout}
   end
 
+  def handle_call({:handle_command, command}, _from, state) do
+    module = state.module
+    res = module.handle(command, state.ar_state)
+
+    {:reply, res, state, state.idle_timeout}
+  end
+
+  def handle_call({:apply_events, events}, _from, state) do
+    module = state.module
+    ar_state = module.update(state.ar_state, events)
+    state = %{state | ar_state: ar_state}
+
+    {:reply, :ok, state, state.idle_timeout}
+  end
+
   def handle_call(:get_aggregate_state, _from, state) do
-    {:reply, state.ar_state, state.idle_timeout}
+    {:reply, state.ar_state, state, state.idle_timeout}
   end
 
   def handle_cast(:asked_for, state) do # just as a safety mechanism for

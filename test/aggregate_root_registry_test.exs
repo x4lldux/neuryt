@@ -73,7 +73,7 @@ defmodule AggregateRootRegistryTest do
 
   test "loading AR, loads events stream from event store and hydrates the state" do
     {:ok, _ref, pid} = AggregateRoot.Registry.open AggregateRootExample, @agg_id
-    assert GenServer.call(pid, :get_aggregate_state) ==
+    assert AggregateRoot.Server.get_aggregate_state(pid) ==
       %AggregateRootExample{items: [:a], id: @agg_id, version: 3}
   end
 

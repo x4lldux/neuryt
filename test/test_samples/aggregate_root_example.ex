@@ -31,17 +31,15 @@ defmodule AggregateRootExample do
   def handle(%Command{command: command}, %AggregateRootExample{} = aggregate) do
     Commands.case command do
       AddItem in agg_id, item ->
-        if !Enum.any?(aggregate.items, & &1 === item) do
-          ok [Events.c(ItemAdded, agg_id, item)]
-        else
-          error Errors.c ItemAllreadyPresent
+        case Enum.any?(aggregate.items, & &1 === item) do
+          true  -> error Errors.c ItemAllreadyPresent
+          false -> ok [Events.c(ItemAdded, agg_id, item)]
         end
 
       RemoveItem in agg_id, item ->
-        if Enum.any?(aggregate.items, & &1 === item) do
-          ok [Events.c(ItemRemoved, agg_id, item)]
-        else
-          error Errors.c NoSuchItem
+        case Enum.any?(aggregate.items, & &1 === item) do
+          true  -> ok [Events.c(ItemRemoved, agg_id, item)]
+          false -> error Errors.c NoSuchItem
         end
 
       ClearItems in agg_id ->
