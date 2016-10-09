@@ -6,25 +6,13 @@ defmodule AggregateRootExample do
   require AggregateRootExample.Commands
 
   alias Neuryt.{Event, Command}
-  alias AggregateRootExample.Errors
-  alias AggregateRootExample.Events
-  alias AggregateRootExample.Commands
+  alias AggregateRootExample.{Errors, Events, Commands}
 
+  # needed only for tests
   def add_item(%AggregateRootExample{} = aggregate, item) do
     case Enum.any?( aggregate.items, & &1 === item) do
+      true  -> error Errors.c ItemAllreadyPresent
       false -> ok [Events.c(ItemAdded, aggregate.id, item)]
-      true  -> error :already_added
-    end
-  end
-
-  def apply(%Event{event: event}, %AggregateRootExample{items: items} = aggregate) do
-    Events.case event do
-      ItemAdded in _agg_id, item ->
-        %AggregateRootExample{aggregate | items: [item | items]}
-      ItemRemoved in _agg_id, item ->
-        %AggregateRootExample{aggregate | items: (items -- [item])}
-      ItemsCleared in _agg_id ->
-        %AggregateRootExample{aggregate | items: []}
     end
   end
 
@@ -47,7 +35,20 @@ defmodule AggregateRootExample do
     end
   end
 
-  defp ok(x), do: {:ok, x}
+  def apply(%Event{event: event}, %AggregateRootExample{items: items} = aggregate) do
+    Events.case event do
+      ItemAdded in _agg_id, item ->
+        %AggregateRootExample{aggregate | items: [item | items]}
+
+      ItemRemoved in _agg_id, item ->
+        %AggregateRootExample{aggregate | items: (items -- [item])}
+
+      ItemsCleared in _agg_id ->
+        %AggregateRootExample{aggregate | items: []}
+    end
+  end
+
+  defp ok(x),    do: {:ok, x}
   defp error(x), do: {:error, x}
 
 end
