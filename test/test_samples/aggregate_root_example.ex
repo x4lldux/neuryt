@@ -1,5 +1,6 @@
 defmodule AggregateRootExample do
   use Neuryt.AggregateRoot, fields: [items: []]
+
   require AggregateRootExample.Errors
   require AggregateRootExample.Events
   require AggregateRootExample.Commands
