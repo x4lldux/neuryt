@@ -4,7 +4,7 @@ defmodule Neuryt.Command.Dispatcher do
   alias Neuryt.AggregateRoot
 
   # @spec dispatch(struct) :: :ok
-  def dispatch(command, aggregate_module, service_data \\ nil) do
+  def dispatch(command, aggregate_module, reaction_to_event, service_data) do
     agg_id = get_stream_id(command)
     {:ok, ref, ar_pid} = AggregateRoot.Registry.open(aggregate_module, agg_id)
     enveloped_command = Command.new(command, service_data: service_data)

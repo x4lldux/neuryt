@@ -26,10 +26,13 @@ defmodule Neuryt.Command.Router do
       Returns `:ok` on success.
       """
       def dispatch(%unquote(command_module){} = command) do
-        Neuryt.Command.Dispatcher.dispatch(command, unquote(aggregate))
+        Neuryt.Command.Dispatcher.dispatch(command, unquote(aggregate), nil, nil)
       end
-      def dispatch(%unquote(command_module){} = command, service_data: service_data) do
-        Neuryt.Command.Dispatcher.dispatch(command, unquote(aggregate), service_data)
+      def dispatch(%unquote(command_module){} = command, opts) do
+        service_data = Keyword.get opts, :service_data, nil
+        reaction_to = Keyword.get opts, :reaction_to, nil
+        Neuryt.Command.Dispatcher.dispatch(command, unquote(aggregate),
+          reaction_to, service_data)
       end
     end
   end

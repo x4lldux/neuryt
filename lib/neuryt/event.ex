@@ -48,7 +48,7 @@ defmodule Neuryt.Event do
     %__MODULE__{
       id:             Neuryt.UUID.new,
       event:          payload,
-      predecessor_id: command.id,
+      predecessor_id: command.predecessor_id,
       process_id:     command.process_id,
       service_data:   command.service_data,
       created_at:     DateTime.utc_now,
@@ -59,7 +59,7 @@ defmodule Neuryt.Event do
     %__MODULE__{
       id:             Neuryt.UUID.new,
       event:          payload,
-      predecessor_id: command.id,
+      predecessor_id: command.predecessor_id,
       process_id:     command.process_id,
       service_data:   service_data,
       created_at:     DateTime.utc_now,
