@@ -20,6 +20,20 @@ defmodule CommandTest do
   test "creating new based on an event" do
     event = Event.new(SomeEvent, service_data: "example_service_data0")
     payload = SomeEvent
+    command = Command.new(payload, event)
+
+    assert %Command{command: ^payload} = command
+    assert command.id != nil
+    assert command.predecessor_id == event.id
+    assert command.process_id != nil
+    assert command.process_id == event.process_id
+    assert command.service_data == "example_service_data0"
+    assert %DateTime{} = command.created_at
+  end
+
+  test "creating new based on an event with service data" do
+    event = Event.new(SomeEvent, service_data: "example_service_data0")
+    payload = SomeEvent
     command = Command.new(payload, event, service_data: "example_service_data1")
 
     assert %Command{command: ^payload} = command

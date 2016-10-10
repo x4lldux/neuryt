@@ -5,6 +5,8 @@ defmodule Neuryt.Mixfile do
     [app: :neuryt,
      version: "0.1.0",
      elixir: "~> 1.3",
+     test_coverage: [tool: ExCoveralls],
+     preferred_cli_env: ["coveralls": :test, "coveralls.detail": :test, "coveralls.post": :test, "coveralls.html": :test],
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      deps: deps()]
@@ -33,6 +35,8 @@ defmodule Neuryt.Mixfile do
       {:gproc, "~> 0.6.1"},
       {:jobs, github: "uwiger/jobs"},
       {:uuid, "~> 1.1"},
+      {:dialyxir, "~> 0.3.5", only: [:test, :dev]},
+      {:excoveralls, "~> 0.5", only: :test},
     ]
   end
 end

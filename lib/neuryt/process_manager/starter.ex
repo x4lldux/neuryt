@@ -23,6 +23,7 @@ defmodule Neuryt.ProcessManager.Starter do
   def start_link(module, opts) when is_atom module do
     start_link [module], opts
   end
+  @spec start_link([atom], options) :: GenServer.on_start
   def start_link(modules, opts) when is_list(modules) do
     {queue_opts, gen_server_opts} = Keyword.split(opts, @valid_options)
     queue_opts = jobs_queue_options queue_opts
