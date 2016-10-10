@@ -12,7 +12,10 @@ defmodule Neuryt.Command.Router do
   end
 
   # dispatch the given command to the corresponding  aggregate root
-  defmacro route(command_module, to: aggregate) do
+  defmacro route(command_module, opts) do
+    aggregate = Keyword.get(opts, :to)
+    ar_idle_timeout = Keyword.get(opts, :ar_idle_timeout)
+
     quote do
       if Enum.member?(@registered_commands, unquote(command_module)) do
         raise "duplicate command registration for: #{unquote(command_module)}"
@@ -21,18 +24,23 @@ defmodule Neuryt.Command.Router do
       @registered_commands [unquote(command_module) | @registered_commands]
 
       @doc """
-      Dispatch the given command to the registered handler
+      Dispatch the given command to the registered handler.
+
+      Accepts additional options:
+        * `:reaction_to` - used in process managers. An event should be passed,
+        when command is sent because of received event - used for preserving IDs,
+        * `:service_data` - which can be used to store user id, HTTP
+        request id or other metadata from service layer,
 
       Returns `:ok` on success.
       """
       def dispatch(%unquote(command_module){} = command) do
-        Neuryt.Command.Dispatcher.dispatch(command, unquote(aggregate), nil, nil)
+        Neuryt.Command.Dispatcher.dispatch(command, unquote(aggregate),
+          [ar_idle_timeout: unquote(ar_idle_timeout)])
       end
       def dispatch(%unquote(command_module){} = command, opts) do
-        service_data = Keyword.get opts, :service_data, nil
-        reaction_to = Keyword.get opts, :reaction_to, nil
         Neuryt.Command.Dispatcher.dispatch(command, unquote(aggregate),
-          reaction_to, service_data)
+          opts ++ [ar_idle_timeout: unquote(ar_idle_timeout)])
       end
     end
   end

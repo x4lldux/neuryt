@@ -4,9 +4,16 @@ defmodule Neuryt.Command.Dispatcher do
   alias Neuryt.AggregateRoot
 
   # @spec dispatch(struct) :: :ok
-  def dispatch(command, aggregate_module, reaction_to_event, service_data) do
+  def dispatch(command, aggregate_module, opts) do
+    service_data = Keyword.get opts, :service_data, nil
+    reaction_to_event = Keyword.get opts, :reaction_to, nil
+    ar_opts = case Keyword.get opts, :ar_idle_timeout, nil do
+                nil -> []
+                ar_idle_timeout -> [idle_timeout: ar_idle_timeout]
+              end
+
     agg_id = get_stream_id(command)
-    {:ok, ref, ar_pid} = AggregateRoot.Registry.open(aggregate_module, agg_id)
+    {:ok, ref, ar_pid} = AggregateRoot.Registry.open(aggregate_module, agg_id, ar_opts)
     enveloped_command = case reaction_to_event do
                           nil ->
                             Command.new(command, service_data: service_data)
