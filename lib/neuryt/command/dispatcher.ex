@@ -7,29 +7,41 @@ defmodule Neuryt.Command.Dispatcher do
   def dispatch(command, aggregate_module, reaction_to_event, service_data) do
     agg_id = get_stream_id(command)
     {:ok, ref, ar_pid} = AggregateRoot.Registry.open(aggregate_module, agg_id)
-    enveloped_command = Command.new(command, service_data: service_data)
+    enveloped_command = case reaction_to_event do
+                          nil ->
+                            Command.new(command, service_data: service_data)
+                          _ ->
+                            Command.new(command, reaction_to_event,
+                              service_data: service_data)
+                        end
 
-    case AggregateRoot.Server.handle_command(ar_pid, enveloped_command) do
-      {:ok, events} ->
-        enveloped_events = envelope_events events, enveloped_command
+    res =
+      case AggregateRoot.Server.handle_command(ar_pid, enveloped_command) do
+        {:ok, events} ->
+          enveloped_events = envelope_events events, enveloped_command
 
-        # process linked as a protection of AR state, in case saving succeed  but
-        # client died before events where applied to AR state. this way, when client
-        # dies, AR will die too and next time it will be reloaded with those events
-        # applied.
-        Process.link ar_pid
-        save_events enveloped_events
-        AggregateRoot.Server.apply_events ar_pid, enveloped_events
-        Process.unlink ar_pid
-        AggregateRoot.Registry.release ref
+          # process linked as a protection of AR state, in case saving succeed
+          # but client died before events where applied to AR state. this way,
+          # when client  dies, AR will die too and next time it will be reloaded
+          # with those events applied.
+          Process.link ar_pid
+          save_events enveloped_events
+          AggregateRoot.Server.apply_events ar_pid, enveloped_events
+          Process.unlink ar_pid
 
-        # FIX: unfortunately, there is no mechanism for publishing events in
-        # such a case!
-        enveloped_events
-        |> Enum.each(&Neuryt.EventBus.publish/1)
+          # HACK: unfortunately, there is no mechanism for publishing events in
+          # such a case!
+          # so for this case a new UNLINKED process is just spawned
+          spawn fn -> Enum.each(enveloped_events, &Neuryt.EventBus.publish/1) end
 
-      {:error, reason} -> {:error, reason}
-    end
+          :ok
+
+        {:error, reason} -> {:error, reason}
+      end
+
+    AggregateRoot.Registry.release ref
+
+    res
   end
 
   defp envelope_events(events, command),
