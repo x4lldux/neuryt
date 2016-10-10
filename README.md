@@ -1,6 +1,6 @@
 # Neuryt
 
-**TODO: Add description**
+Semi-opinionated CQRS+ES framework.
 
 ## Installation
 
@@ -21,4 +21,3 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
       [applications: [:neuryt]]
     end
     ```
-
