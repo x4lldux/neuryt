@@ -17,15 +17,10 @@ cache:
     - "deps"
 
 
-build-dev:
+build:
   stage: build
   script:
-  - MIX_ENV=dev mix compile
-
-build-test:
-  stage: build
-  script:
-  - MIX_ENV=test mix compile
+  - mix compile
 
 test:
   stage: test
