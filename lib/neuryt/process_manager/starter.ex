@@ -87,21 +87,18 @@ defmodule Neuryt.ProcessManager.Starter do
           send pm_worker, event
 
           receive do
-            {:DOWN, mref, :process, _, _} -> :ok # wait until worker dies
+            {:DOWN, ^mref, :process, _, _} -> :ok # wait until worker dies
           end
         end
       end)
   end
 
   defp start_worker(module) do
-    import Supervisor.Spec
-    queue_name = queue_name(module)
-
     module.start_link
   end
 
   defp jobs_queue_options(opts) do
-    queue_opts = cond do
+    cond do
       jobs_opts = Keyword.get(opts, :jobs_opts) ->
         jobs_opts
       true ->
