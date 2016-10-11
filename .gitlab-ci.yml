@@ -12,29 +12,31 @@ stages:
   - test
 
 cache:
-  key: ${CI_BUILD_REF_NAME}
+  key: "${CI_BUILD_REF_NAME}"
   paths:
     - "_build"
     - "deps"
-
-artifacts:
-  expire_in: 1 day
-  paths:
-    - "_build"
-    - "deps"
-
 
 build:
   stage: build
   script:
-  - mix compile
+    - mix compile
+  artifacts:
+    expire_in: 3 day
+    paths:
+      - "_build"
+      - "deps"
 
 test:
   stage: test
+  dependencies:
+    - build
   script:
   - mix test
 
 coverage:
   stage: test
+  dependencies:
+    - build
   script:
   - mix coveralls
