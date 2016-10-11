@@ -40,19 +40,19 @@ defmodule AggregateRootRegistryTest do
   end
 
   test "creates new AR when none is present" do
-    assert AggregateRoot.Registry.loaded_aggregates_count == 0
+    assert not {AggregateRootExample, @agg_id} in AggregateRoot.Registry.list_loaded_aggregates
     {:ok, _ref, pid} = AggregateRoot.Registry.open AggregateRootExample, @agg_id
     assert is_pid(pid) == true
     assert Process.alive?(pid) == true
-    assert AggregateRoot.Registry.loaded_aggregates_count == 1
+    assert {AggregateRootExample, @agg_id} in AggregateRoot.Registry.list_loaded_aggregates
   end
 
   test "loaded AR autoterminates on idle timeout" do
     {:ok, ref, _pid} = AggregateRoot.Registry.open AggregateRootExample, @agg_id, idle_timeout: 50
-    assert AggregateRoot.Registry.loaded_aggregates_count == 1
+    assert {AggregateRootExample, @agg_id} in AggregateRoot.Registry.list_loaded_aggregates
     AggregateRoot.Registry.release ref
     Process.sleep 60
-    assert AggregateRoot.Registry.loaded_aggregates_count == 0
+    assert not {AggregateRootExample, @agg_id} in AggregateRoot.Registry.list_loaded_aggregates
   end
 
   test "loaded AR is returned on `open/2`" do
@@ -62,13 +62,13 @@ defmodule AggregateRootRegistryTest do
   end
 
   test "creating AR also creates :jobs queue for that AR" do
-    assert AggregateRoot.Registry.loaded_aggregates_count == 0
-    assert count_ar_queues == 0
+    assert not {AggregateRootExample, @agg_id} in AggregateRoot.Registry.list_loaded_aggregates
+    assert not {AggregateRootExample, @agg_id} in list_ar_queues
 
     {:ok, _ref, _pid} = AggregateRoot.Registry.open AggregateRootExample, @agg_id
 
-    assert AggregateRoot.Registry.loaded_aggregates_count == 1
-    assert count_ar_queues == 1
+    assert {AggregateRootExample, @agg_id} in AggregateRoot.Registry.list_loaded_aggregates
+    assert {AggregateRootExample, @agg_id} in list_ar_queues
   end
 
   test "loading AR, loads events stream from event store and hydrates the state" do
@@ -157,11 +157,12 @@ defmodule AggregateRootRegistryTest do
     :jobs.delete_queue {:ar_queue, aggregate, agg_id}
   end
 
-  defp count_ar_queues do
+  defp list_ar_queues do
     :jobs.info(:queues)
-    |> Enum.filter(fn x ->
+    |> Enum.filter_map(fn x ->
       match? {:queue, [{:name, {:ar_queue, _, _}} | _]}, x
+    end, fn {:queue, [{:name, {:ar_queue, m, i}} | _]} ->
+      {m, i}
     end)
-    |> length
   end
 end

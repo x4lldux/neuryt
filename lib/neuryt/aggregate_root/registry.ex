@@ -6,8 +6,8 @@ defmodule Neuryt.AggregateRoot.Registry do
     GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
   end
 
-  def loaded_aggregates_count do
-    GenServer.call(__MODULE__, :loaded_aggregates_count)
+  def list_loaded_aggregates do
+    GenServer.call(__MODULE__, :list_loaded_aggregates)
   end
 
   def open(aggregate, agg_id, opts \\ []) do
@@ -36,11 +36,13 @@ defmodule Neuryt.AggregateRoot.Registry do
     {:ok, []}
   end
 
-  def handle_call(:loaded_aggregates_count, _from, state) do
-    count =
-      Supervisor.which_children(Neuryt.AggregateRoot.ServerSupervisor)
-      |> length
-    {:reply, count, state}
+  def handle_call(:list_loaded_aggregates, _from, state) do
+    list =
+      :gproc.table({:l, :n}, [:check_pids])
+      |> :qlc.eval
+      |> Enum.map(fn {{:n, :l, aggregate}, _, _} -> aggregate end)
+
+    {:reply, list, state}
   end
 
   def handle_call({:ensure_queue_is_present, aggregate, agg_id}, _from, state) do
