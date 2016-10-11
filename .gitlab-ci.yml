@@ -4,21 +4,24 @@
 image: elixir:1.3
 
 before_script:
+  - mix local.hex --force
   - mix deps.get
 
 stages:
   - build
   - test
-  - coverage
 
 build:
+  stage: build
   script:
   - mix compile
 
 test:
+  stage: test
   script:
   - mix test
 
 coverage:
+  stage: test
   script:
   - mix coveralls
