@@ -21,22 +21,13 @@ build:
   stage: build
   script:
     - mix compile
-  artifacts:
-    expire_in: 3 day
-    paths:
-      - "_build"
-      - "deps"
 
 test:
   stage: test
-  dependencies:
-    - build
   script:
   - mix test
 
 coverage:
   stage: test
-  dependencies:
-    - build
   script:
   - mix coveralls
