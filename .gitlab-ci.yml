@@ -10,6 +10,7 @@ before_script:
 stages:
   - build
   - test
+  - coverage
 
 cache:
   key: "${CI_BUILD_REF_NAME}"
@@ -28,6 +29,6 @@ test:
   - mix test
 
 coverage:
-  stage: test
+  stage: coverage
   script:
   - mix coveralls
