@@ -98,11 +98,10 @@ defmodule Neuryt.ProcessManager.Starter do
   end
 
   defp jobs_queue_options(opts) do
-    cond do
-      jobs_opts = Keyword.get(opts, :jobs_opts) ->
-        jobs_opts
-      true ->
-        [standard_counter: Keyword.get(opts, :max_count)]
+    if jobs_opts = Keyword.get(opts, :jobs_opts) do
+      jobs_opts
+    else
+      [standard_counter: Keyword.get(opts, :max_count)]
     end
   end
 
@@ -113,7 +112,8 @@ defmodule Neuryt.ProcessManager.Starter do
   defp queue_stats(queue_name) do
     {:queue, stats} = :jobs.queue_info(queue_name)
     [running] =
-      :jobs.info(:counters)
+      :counters
+      |> :jobs.info
       |> Enum.filter(& match?({:cr, [{:name, {:counter, ^queue_name, _}} | _]}, &1))
       |> Enum.map(fn {:cr, x = [{:name, {:counter, ^queue_name, _}} | _]} ->
         Keyword.get(x, :value)

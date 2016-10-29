@@ -1,4 +1,8 @@
 defmodule Neuryt.CommandHandler do
+  @moduledoc """
+  Command handler behaviour.
+  """
+
   @type raw_event :: any
   @type event :: Neuryt.Event.t
   @type command :: Neuryt.Command.t

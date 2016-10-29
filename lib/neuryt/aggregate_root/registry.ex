@@ -1,4 +1,13 @@
 defmodule Neuryt.AggregateRoot.Registry do
+  @moduledoc """
+  Registry is responsible for opening aggregate root and locking it.
+  Normally you will not need it, because command dispatching deals with this
+  module underneath.
+
+  AR are locked and only one process can access it. It's to protect the
+  invariants from parallel updating. After the process it should release it
+  using `release/1` function.
+  """
   use GenServer
 
   # Client API
@@ -28,7 +37,7 @@ defmodule Neuryt.AggregateRoot.Registry do
   end
 
   def get_aggregate_root_pid(aggregate, agg_id) do
-    Neuryt.AggregateRoot.Server.get_pid(aggregate, agg_id)
+    Neuryt.AggregateRoot.Server.whereis(aggregate, agg_id)
   end
 
   # Server callbacks

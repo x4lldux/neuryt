@@ -1,4 +1,9 @@
 defmodule Neuryt.AggregateRoot.Server do
+  @moduledoc """
+  Server responsible for loading and keep AR state in memory, and applying
+  events to it's state.
+  Most of the time it will not be needed at all.
+  """
   use GenServer
 
   @default_opts [idle_timeout: 5000]
@@ -16,7 +21,7 @@ defmodule Neuryt.AggregateRoot.Server do
     {:n, :l, {aggregate, agg_id}}
   end
 
-  def get_pid(aggregate, agg_id) do
+  def whereis(aggregate, agg_id) do
     :gproc.where server_name(aggregate, agg_id)
   end
 

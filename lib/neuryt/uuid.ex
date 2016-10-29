@@ -52,7 +52,7 @@ defmodule Neuryt.UUID do
     |> to_binary
     |> to_string(format)
   end
-  def to_string(uuid, format) when is_binary(uuid) and byte_size(uuid)==16 do
+  def to_string(uuid, format) when is_binary(uuid) and byte_size(uuid) == 16 do
     uuid
     |> UUID.binary_to_string!(format)
   end
@@ -81,7 +81,7 @@ defmodule Neuryt.UUID do
     |> to_binary
     |> to_base64
   end
-  def to_base64(uuid) when is_binary(uuid) and byte_size(uuid)==16 do
+  def to_base64(uuid) when is_binary(uuid) and byte_size(uuid) == 16 do
     uuid |> Base.url_encode64(padding: false)
   end
 

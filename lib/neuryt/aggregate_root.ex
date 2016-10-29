@@ -1,4 +1,8 @@
 defmodule Neuryt.AggregateRoot do
+  @moduledoc """
+  Aggregate root behaviour.
+  """
+
   defmacro __using__(fields: fields) do
     quote do
       import Kernel, except: [apply: 2]

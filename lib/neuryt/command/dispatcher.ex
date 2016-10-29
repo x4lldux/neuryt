@@ -1,9 +1,14 @@
 defmodule Neuryt.Command.Dispatcher do
+  @moduledoc false
 
   alias Neuryt.Command
   alias Neuryt.AggregateRoot
 
-  # @spec dispatch(struct) :: :ok
+  @type opt :: {:service_data, any} | {:reaction_to, atom} |
+  {:ar_idle_timeout, pos_integer}
+  @type opts :: [opt]
+
+  @spec dispatch(%{}, atom, atom, opts) :: :ok
   def dispatch(command, command_handler, aggregate_module, opts) do
     service_data = Keyword.get opts, :service_data, nil
     reaction_to_event = Keyword.get opts, :reaction_to, nil
@@ -15,14 +20,7 @@ defmodule Neuryt.Command.Dispatcher do
     agg_id = get_stream_id(command)
     {:ok, ref, ar_pid} = AggregateRoot.Registry.open(aggregate_module, agg_id,
       ar_opts)
-    enveloped_command = case reaction_to_event do
-                          nil ->
-                            Command.new(command, service_data: service_data)
-                          _ ->
-                            Command.new(command, reaction_to_event,
-                              service_data: service_data)
-                        end
-
+    enveloped_command = envelope_command(command, reaction_to_event, service_data)
     res =
       case AggregateRoot.Server.handle_command(ar_pid, command_handler,
             enveloped_command) do
@@ -30,8 +28,8 @@ defmodule Neuryt.Command.Dispatcher do
           enveloped_events = envelope_events events, enveloped_command
 
           # process linked as a protection of AR state, in case saving succeed
-          # but client died before events where applied to AR state. this way,
-          # when client  dies, AR will die too and next time it will be reloaded
+          # but client died before events where applied to AR state. This way,
+          # when client dies, AR will die too and next time it will be reloaded
           # with those events applied.
           Process.link ar_pid
           save_events enveloped_events
@@ -52,6 +50,11 @@ defmodule Neuryt.Command.Dispatcher do
 
     res
   end
+
+  defp envelope_command(command, nil, service_data),
+    do: Command.new(command, service_data: service_data)
+  defp envelope_command(command, reaction_to_event, service_data),
+    do: Command.new(command, reaction_to_event, service_data: service_data)
 
   defp envelope_events(events, command),
     do: Enum.map(events, &envelope_event(&1, command))

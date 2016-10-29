@@ -7,7 +7,7 @@ defmodule Neuryt.EventBus do
   Publishes an event to all it subscribers.
   """
   @spec publish(Neuryt.Event.t) :: :ok
-  def publish(%Neuryt.Event{event: %{__struct__: event_name}}=event) do
+  def publish(%Neuryt.Event{event: %{__struct__: event_name}} = event) do
     :pg2.create all_events_group
     :pg2.create event_group(event_name)
 

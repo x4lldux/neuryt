@@ -151,7 +151,7 @@ defmodule AggregateRootRegistryTest do
 
   defp clean_up_after(aggregate, agg_id) do
     try do
-      GenServer.stop AggregateRoot.Server.get_pid(aggregate, agg_id)
+      GenServer.stop AggregateRoot.Server.whereis(aggregate, agg_id)
     catch _, _ -> :ok
     end
     :jobs.delete_queue {:ar_queue, aggregate, agg_id}
