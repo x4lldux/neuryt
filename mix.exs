@@ -35,6 +35,8 @@ defmodule Neuryt.Mixfile do
       {:gproc, "~> 0.6.1"},
       {:jobs, github: "uwiger/jobs"},
       {:uuid, "~> 1.1"},
+
+      {:credo, "~> 0.4", only: [:dev, :test]},
       {:dialyxir, "~> 0.3.5", only: [:test, :dev]},
       {:excoveralls, "~> 0.5", only: :test},
     ]
