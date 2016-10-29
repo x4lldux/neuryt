@@ -18,21 +18,13 @@ defmodule Neuryt.AggregateRoot do
 
       def update(%__MODULE__{id: id, version: version} = aggregate, events) when is_list(events) do
         aggregate = Enum.reduce(events, aggregate, &__MODULE__.apply/2)
-        %__MODULE__{ aggregate | version: version + length(events) }
+        %__MODULE__{aggregate | version: version + length(events)}
       end
     end
   end
 
-  @type raw_event :: any
   @type event :: Neuryt.Event.t
-  @type command :: Neuryt.Command.t
   @type aggregate :: %{}
-  @type reason :: any
-
-  @doc """
-  Handles command sent to AR and returns list of events that will be published.
-  """
-  @callback handle(command, aggregate) :: {:ok, [raw_event]} | {:error, reason}
 
   @doc """
   Applies event to aggregate root's state returning new AR state.

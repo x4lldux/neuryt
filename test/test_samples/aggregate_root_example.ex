@@ -1,5 +1,7 @@
 defmodule AggregateRootExample do
+  @behaviour Neuryt.CommandHandler
   use Neuryt.AggregateRoot, fields: [items: []]
+
 
   require AggregateRootExample.Errors
   require AggregateRootExample.Events

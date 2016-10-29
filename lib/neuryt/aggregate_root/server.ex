@@ -24,8 +24,8 @@ defmodule Neuryt.AggregateRoot.Server do
     GenServer.call ar_pid, :get_aggregate_state
   end
 
-  def handle_command(ar_pid, %Neuryt.Command{} = command) do
-    GenServer.call ar_pid, {:handle_command, command}
+  def handle_command(ar_pid, command_handler, %Neuryt.Command{} = command) do
+    GenServer.call ar_pid, {:handle_command, command_handler, command}
   end
 
   def apply_events(ar_pid, events) do
@@ -50,8 +50,8 @@ defmodule Neuryt.AggregateRoot.Server do
     {:ok, state, state.idle_timeout}
   end
 
-  def handle_call({:handle_command, command}, _from, state) do
-    module = state.module
+  def handle_call({:handle_command, command_handler, command}, _from, state) do
+    module = command_handler
     res = module.handle(command, state.ar_state)
 
     {:reply, res, state, state.idle_timeout}

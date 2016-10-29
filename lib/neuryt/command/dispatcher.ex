@@ -4,7 +4,7 @@ defmodule Neuryt.Command.Dispatcher do
   alias Neuryt.AggregateRoot
 
   # @spec dispatch(struct) :: :ok
-  def dispatch(command, aggregate_module, opts) do
+  def dispatch(command, command_handler, aggregate_module, opts) do
     service_data = Keyword.get opts, :service_data, nil
     reaction_to_event = Keyword.get opts, :reaction_to, nil
     ar_opts = case Keyword.get opts, :ar_idle_timeout, nil do
@@ -13,7 +13,8 @@ defmodule Neuryt.Command.Dispatcher do
               end
 
     agg_id = get_stream_id(command)
-    {:ok, ref, ar_pid} = AggregateRoot.Registry.open(aggregate_module, agg_id, ar_opts)
+    {:ok, ref, ar_pid} = AggregateRoot.Registry.open(aggregate_module, agg_id,
+      ar_opts)
     enveloped_command = case reaction_to_event do
                           nil ->
                             Command.new(command, service_data: service_data)
@@ -23,7 +24,8 @@ defmodule Neuryt.Command.Dispatcher do
                         end
 
     res =
-      case AggregateRoot.Server.handle_command(ar_pid, enveloped_command) do
+      case AggregateRoot.Server.handle_command(ar_pid, command_handler,
+            enveloped_command) do
         {:ok, events} ->
           enveloped_events = envelope_events events, enveloped_command
 

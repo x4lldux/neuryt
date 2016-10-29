@@ -11,9 +11,15 @@ defmodule Neuryt.Command.Router do
     end
   end
 
-  # dispatch the given command to the corresponding  aggregate root
+  # dispatch the given command to the corresponding aggregate root
+  @doc """
+  Defines a route for commands to a command handler specified in `:to` option,
+  for aggregate root specified in `:for_ar`.
+  If `:for_ar` is omitted then module from `:to` will be used.
+  """
   defmacro route(command_module, opts) do
-    aggregate = Keyword.get(opts, :to)
+    command_handler = Keyword.get(opts, :to)
+    aggregate = Keyword.get(opts, :for_ar, command_handler)
     ar_idle_timeout = Keyword.get(opts, :ar_idle_timeout)
 
     quote do
@@ -35,12 +41,12 @@ defmodule Neuryt.Command.Router do
       Returns `:ok` on success.
       """
       def dispatch(%unquote(command_module){} = command) do
-        Neuryt.Command.Dispatcher.dispatch(command, unquote(aggregate),
-          [ar_idle_timeout: unquote(ar_idle_timeout)])
+        Neuryt.Command.Dispatcher.dispatch(command, unquote(command_handler),
+          unquote(aggregate), [ar_idle_timeout: unquote(ar_idle_timeout)])
       end
       def dispatch(%unquote(command_module){} = command, opts) do
-        Neuryt.Command.Dispatcher.dispatch(command, unquote(aggregate),
-          opts ++ [ar_idle_timeout: unquote(ar_idle_timeout)])
+        Neuryt.Command.Dispatcher.dispatch(command, unquote(command_handler),
+          unquote(aggregate), opts ++ [ar_idle_timeout: unquote(ar_idle_timeout)])
       end
     end
   end
