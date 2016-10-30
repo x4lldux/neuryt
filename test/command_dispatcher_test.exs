@@ -21,13 +21,13 @@ defmodule CommandDispatcherTest do
   test "command handling can result in :ok",
     %{agg_id: agg_id, item: item} do
 
-    assert :ok = CommandRouterExample.dispatch Commands.c(AddItem, agg_id, item)
+    assert {:ok, ^agg_id} = CommandRouterExample.dispatch Commands.c(AddItem, agg_id, item)
   end
 
   test "command handling can result in {:error, reason}",
     %{agg_id: agg_id, item: item} do
 
-    assert :ok =
+    assert {:ok, ^agg_id} =
       CommandRouterExample.dispatch Commands.c(AddItem, agg_id, item)
     assert {:error, Errors.c(ItemAllreadyPresent)} =
       CommandRouterExample.dispatch Commands.c(AddItem, agg_id, item)
@@ -36,25 +36,25 @@ defmodule CommandDispatcherTest do
   test "handled command changes AR sate",
     %{agg_id: agg_id, item: item, item2: item2} do
 
-    assert :ok =
+    assert {:ok, ^agg_id} =
       CommandRouterExample.dispatch Commands.c(AddItem, agg_id, item)
     ar_pid = AggregateRoot.Registry.get_aggregate_root_pid(
       AggregateRootExample, agg_id)
 
     assert %AggregateRootExample{items: [^item]} =
       AggregateRoot.Server.get_aggregate_state(ar_pid)
-    assert :ok = CommandRouterExample.dispatch Commands.c(AddItem, agg_id, item2)
+    assert {:ok, ^agg_id} = CommandRouterExample.dispatch Commands.c(AddItem, agg_id, item2)
     assert %AggregateRootExample{items: [^item2, ^item]} =
       AggregateRoot.Server.get_aggregate_state(ar_pid)
   end
 
   test "handled command publishes events", %{agg_id: agg_id, item: item, item2: item2} do
     EventBus.subscribe Events
-    assert :ok =
+    assert {:ok, ^agg_id} =
       CommandRouterExample.dispatch Commands.c(AddItem, agg_id, item)
     assert_receive %Event{event: Events.c(ItemAdded, ^agg_id, ^item)}
 
-    assert :ok =
+    assert {:ok, ^agg_id} =
       CommandRouterExample.dispatch Commands.c(AddItem, agg_id, item2),
       service_data: "service data"
     assert_receive %Event{event: Events.c(ItemAdded, ^agg_id, ^item2),
@@ -66,7 +66,7 @@ defmodule CommandDispatcherTest do
     EventBus.subscribe Events
     starting_event = Event.new Events.c(ItemsCleared, agg_id)
 
-    assert :ok =
+    assert {:ok, ^agg_id} =
       CommandRouterExample.dispatch Commands.c(AddItem, agg_id, item),
       reaction_to: starting_event
     event =  assert_receive %Event{event: Events.c(ItemAdded, ^agg_id, ^item)}
@@ -76,13 +76,13 @@ defmodule CommandDispatcherTest do
 
   test "handled command saves events to event store",
     %{agg_id: agg_id, item: item, item2: item2} do
-    assert :ok =
+    assert {:ok, ^agg_id} =
       CommandRouterExample.dispatch Commands.c(AddItem, agg_id, item)
 
     assert {:ok, [ %Event{event: Events.c(ItemAdded, ^agg_id, ^item)} ]} =
       MemStoreExample.load_stream_events(agg_id)
 
-    assert :ok = CommandRouterExample.dispatch Commands.c(AddItem, agg_id, item2),
+    assert {:ok, ^agg_id} = CommandRouterExample.dispatch Commands.c(AddItem, agg_id, item2),
       service_data: "service data"
 
     assert {:ok, [ %Event{event: Events.c(ItemAdded, ^agg_id, ^item2),

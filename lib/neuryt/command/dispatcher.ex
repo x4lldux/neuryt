@@ -41,7 +41,7 @@ defmodule Neuryt.Command.Dispatcher do
           # so for this case a new UNLINKED process is just spawned
           spawn fn -> Enum.each(enveloped_events, &Neuryt.EventBus.publish/1) end
 
-          :ok
+          {:ok, agg_id}
 
         {:error, reason} -> {:error, reason}
       end
