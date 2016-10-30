@@ -6,14 +6,14 @@ defmodule ProcessManagerExample do
 
   # Client API
   def start_link(opts \\ []) do
-    GenServer.start_link(__MODULE__,  opts)
+    GenServer.start_link(__MODULE__, :ok, opts)
   end
 
   def wake_up?(%Event{event: SomeEvents.c(Event2, _pid)}), do: true
   def wake_up?(_), do: false
 
   # Server callbacks
-  def init() do
+  def init(:ok) do
     EventBus.subscribe_to_all_events
 
     {:ok, nil}
