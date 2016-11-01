@@ -17,8 +17,8 @@ defmodule ProcessManagerTest do
   end
 
   test "wake_up? function returns boolean" do
-    assert ProcessManagerExample.wake_up?(%Event{event: SomeEvents.c(Event1)}) == false
-    assert ProcessManagerExample.wake_up?(%Event{event: SomeEvents.c(Event2, self)}) == true
+    assert ProcessManagerExample.wake_up?(%Event{event: SomeEvents.c(Event1, 123)}) == false
+    assert ProcessManagerExample.wake_up?(%Event{event: SomeEvents.c(Event2, 123, self)}) == true
   end
 
 
@@ -27,23 +27,23 @@ defmodule ProcessManagerTest do
   end
 
   test "starter starts new PM when wake up event is published", %{pm_pid: pid}  do
-    EventBus.publish %Event{event: SomeEvents.c(Event2, self)}
+    EventBus.publish %Event{event: SomeEvents.c(Event2, 123, self)}
     assert_receive :event_recieved, 1000
     assert %{ProcessManagerExample => %{running: 1}} = ProcessManager.Starter.stats(pid)
 
-    EventBus.publish %Event{event: SomeEvents.c Stop}
+    EventBus.publish %Event{event: SomeEvents.c(Stop, 123)}
   end
 
   test "starter allows only limited number of workers of each PM", %{pm_pid: pid} do
-    EventBus.publish %Event{event: SomeEvents.c(Event2, self)}
+    EventBus.publish %Event{event: SomeEvents.c(Event2, 123, self)}
     assert_receive :event_recieved, 1000
     assert %{ProcessManagerExample => %{running: 1, queued: 0}} = ProcessManager.Starter.stats(pid)
 
-    EventBus.publish %Event{event: SomeEvents.c(Event2, self)}
+    EventBus.publish %Event{event: SomeEvents.c(Event2, 123, self)}
     assert_receive :event_recieved, 1000
     assert %{ProcessManagerExample => %{running: 2, queued: 0}} = ProcessManager.Starter.stats(pid)
 
-    EventBus.publish %Event{event: SomeEvents.c(Event2, self)}
+    EventBus.publish %Event{event: SomeEvents.c(Event2, 123, self)}
     Process.sleep 100
     assert %{ProcessManagerExample => %{running: 2, queued: 1}} = ProcessManager.Starter.stats(pid)
   end

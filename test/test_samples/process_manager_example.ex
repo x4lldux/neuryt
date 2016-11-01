@@ -9,7 +9,7 @@ defmodule ProcessManagerExample do
     GenServer.start_link(__MODULE__, :ok, opts)
   end
 
-  def wake_up?(%Event{event: SomeEvents.c(Event2, _pid)}), do: true
+  def wake_up?(%Event{event: SomeEvents.c(Event2, _agg_id, _pid)}), do: true
   def wake_up?(_), do: false
 
   # Server callbacks
@@ -23,12 +23,12 @@ defmodule ProcessManagerExample do
     {:stop, :normal, state}
   end
 
-  def handle_info(%Event{event: SomeEvents.c(Event2, pid)}, state) do
+  def handle_info(%Event{event: SomeEvents.c(Event2, _agg_id, pid)}, state) do
     send pid, :event_recieved
     {:noreply, state}
   end
 
-  def handle_info(%Event{event: SomeEvents.c(Stop)}, state) do
+  def handle_info(%Event{event: SomeEvents.c(Stop, _agg_id)}, state) do
     {:stop, :normal, state}
   end
 end
