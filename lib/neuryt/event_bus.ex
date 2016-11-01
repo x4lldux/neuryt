@@ -126,13 +126,6 @@ defmodule Neuryt.EventBus do
     :ok
   end
 
-  # TODO: implement wait_for macro
-  # @doc """
-  # Blocks and waits only for a specific event. Gives up after specific timeout
-  # (5000 milliseconds by defulat), can be set to `:infinite` to wait indefinitely.
-  # """
-  # defmacro wait_for(event, timeout \\ 5000)
-
   defp event_group(event_name), do: {__MODULE__, :event, event_name}
   defp event_group(event_name, agg_id), do: {__MODULE__, :event, event_name, agg_id}
   defp all_events_group, do: {__MODULE__, :all_events}

@@ -15,6 +15,7 @@ defmodule CommandDispatcherTest do
       agg_id: UUID.new,
       item: :rand.uniform,
       item2: :rand.uniform,
+      item3: :rand.uniform,
     }
   end
 
@@ -89,5 +90,52 @@ defmodule CommandDispatcherTest do
                           service_data: "service data"},
                    %Event{event: Events.c(ItemAdded, ^agg_id, ^item)}]} =
       MemStoreExample.load_all_events()
+  end
+
+  test "`dispatch_wait_for` dispatches command and blocks until event is received and returns it",
+    %{agg_id: agg_id, item: item} do
+
+    assert {:ok, ^agg_id, %Event{event: Events.c(ItemAdded, ^agg_id, ^item)}} =
+      CommandRouterExample.dispatch_wait_for(
+        Commands.c(AddItem, agg_id, item),
+        [Events])
+
+    delay = 100
+    start_time = :erlang.system_time / 1_000_000
+    assert {:ok, ^agg_id, %Event{event: Events.c(ItemsProcessed, ^agg_id, delay)}} =
+      CommandRouterExample.dispatch_wait_for(
+        Commands.c(ProcessItems, agg_id, delay),
+        [Events])
+    end_time = :erlang.system_time / 1_000_000
+    assert (end_time - start_time) >= delay # hacky but should work
+    assert (end_time - start_time) <= delay + 0.1*delay # some error margin
+  end
+
+  test "`dispatch_wait_for` handles subscribing and unsubscribing",
+    %{agg_id: agg_id, item: item, item2: item2, item3: item3} do
+    alias Neuryt.EventBus
+
+    assert {:ok, ^agg_id, %Event{event: Events.c(ItemAdded, ^agg_id, ^item)}} =
+      CommandRouterExample.dispatch_wait_for(Commands.c(AddItem, agg_id, item),
+        [Events], auto_unsubscribe: false)
+    assert Enum.member? EventBus.list_subscribers(Events), self
+    EventBus.unsubscribe Events
+
+    assert {:ok, ^agg_id, %Event{event: Events.c(ItemAdded, ^agg_id, ^item2)}} =
+      CommandRouterExample.dispatch_wait_for(Commands.c(AddItem, agg_id, item2),
+        [Events], auto_unsubscribe: true)
+    refute Enum.member? EventBus.list_subscribers(Events), self
+
+    assert {:ok, ^agg_id, %Event{event: Events.c(ItemAdded, ^agg_id, ^item3)}} =
+      CommandRouterExample.dispatch_wait_for(Commands.c(AddItem, agg_id, item3),
+        [Events])
+    refute Enum.member? EventBus.list_subscribers(Events), self
+  end
+
+  test "`dispatch_wait_for` {:ok, agg_id, :timeout} timeout when no message is received within given timeout",
+      %{agg_id: agg_id, item: item} do
+
+    assert {:ok, ^agg_id, :timeout} = CommandRouterExample.dispatch_wait_for(
+      Commands.c(AddItem, agg_id, item), [Events], timeout: 0)
   end
 end

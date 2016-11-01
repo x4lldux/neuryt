@@ -22,8 +22,13 @@ defmodule CommandRouterTest do
   # end
 
   test "should fail to dispatch unregistered command" do
-    {:error, :unregistered_command} =
-      CommandRouterTest.CommandRouterExample.dispatch UnregisteredCommands.c!(Foo, @agg_id)
+    assert {:error, :unregistered_command} =
+      CommandRouterTest.CommandRouterExample.dispatch(
+        UnregisteredCommands.c!(Foo, @agg_id))
+
+    assert {:error, :unregistered_command} =
+      CommandRouterTest.CommandRouterExample.dispatch_wait_for(
+        UnregisteredCommands.c!(Foo, @agg_id), [Some])
   end
 
   test "should prevent duplicate registrations for commands" do

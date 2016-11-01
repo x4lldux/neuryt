@@ -32,6 +32,9 @@ defmodule AggregateRootExample do
           false -> error Errors.c NoSuchItem
         end
 
+      ProcessItems in agg_id, delay ->
+        ok [Events.c(ItemsProcessed, agg_id, delay)]
+
       ClearItems in agg_id ->
         ok [Events.c(ItemsCleared, agg_id)]
     end
@@ -44,6 +47,10 @@ defmodule AggregateRootExample do
 
       ItemRemoved in _agg_id, item ->
         %AggregateRootExample{aggregate | items: (items -- [item])}
+
+      ItemsProcessed in _agg_id, delay ->
+        Process.sleep delay
+        aggregate
 
       ItemsCleared in _agg_id ->
         %AggregateRootExample{aggregate | items: []}
