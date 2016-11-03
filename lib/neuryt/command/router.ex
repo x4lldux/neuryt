@@ -160,7 +160,8 @@ defmodule Neuryt.Command.Router do
       * `:timeout` - how long (in milliseconds) to wait for an event (default is
       5000), can be set to `:infinity`,
       * `auto_unsubscribe` - whether to automatically unsubscribe, once the
-      event is receibed (default is true).
+      event is receibed (default is true). Events already subscribed to will not
+      be unsubscribed!
 
       On suscess returns `{:ok, aggregate_id, event}` when event is received, or
       `{:ok, aggregate_id, :timeout}` when timeout was reached.
