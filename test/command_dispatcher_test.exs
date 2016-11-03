@@ -1,6 +1,7 @@
 defmodule CommandDispatcherTest do
   use ExUnit.Case
 
+  require CommandRouterExample
   require AggregateRootExample.Commands
   require AggregateRootExample.Events
   require AggregateRootExample.Errors
@@ -96,19 +97,30 @@ defmodule CommandDispatcherTest do
     %{agg_id: agg_id, item: item} do
 
     assert {:ok, ^agg_id, %Event{event: Events.c(ItemAdded, ^agg_id, ^item)}} =
-      CommandRouterExample.dispatch_wait_for(
-        Commands.c(AddItem, agg_id, item),
+      CommandRouterExample.dispatch_wait_for(Commands.c(AddItem, agg_id, item),
         [Events])
 
     delay = 100
     start_time = :erlang.system_time / 1_000_000
     assert {:ok, ^agg_id, %Event{event: Events.c(ItemsProcessed, ^agg_id, delay)}} =
       CommandRouterExample.dispatch_wait_for(
-        Commands.c(ProcessItems, agg_id, delay),
-        [Events])
+        Commands.c(ProcessItems, agg_id, delay), [Events])
     end_time = :erlang.system_time / 1_000_000
     assert (end_time - start_time) >= delay # hacky but should work
     assert (end_time - start_time) <= delay + 0.1*delay # some error margin
+  end
+
+  test "`dispatch_wait_for` waits only for specified events, ignores rest of them",
+    %{agg_id: agg_id} do
+
+    delay = 10
+    EventBus.subscribe Events
+    EventBus.publish %Event{event: Events.c(ItemsProcessed, 456, delay)}
+
+    assert {:ok, ^agg_id, %Event{event: Events.c(ItemsProcessed, ^agg_id, ^delay)}} =
+      CommandRouterExample.dispatch_wait_for(
+        Commands.c(ProcessItems, agg_id, delay), [{Events, agg_id}])
+    assert_receive %Event{event: Events.c(ItemsProcessed, 456, ^delay)}
   end
 
   test "`dispatch_wait_for` handles subscribing and unsubscribing",
@@ -117,13 +129,13 @@ defmodule CommandDispatcherTest do
 
     assert {:ok, ^agg_id, %Event{event: Events.c(ItemAdded, ^agg_id, ^item)}} =
       CommandRouterExample.dispatch_wait_for(Commands.c(AddItem, agg_id, item),
-        [Events], auto_unsubscribe: false)
+        [Events], fn _e -> true end, auto_unsubscribe: false)
     assert Enum.member? EventBus.list_subscribers(Events), self
     EventBus.unsubscribe Events
 
     assert {:ok, ^agg_id, %Event{event: Events.c(ItemAdded, ^agg_id, ^item2)}} =
       CommandRouterExample.dispatch_wait_for(Commands.c(AddItem, agg_id, item2),
-        [Events], auto_unsubscribe: true)
+        [Events], fn _e -> true end, auto_unsubscribe: true)
     refute Enum.member? EventBus.list_subscribers(Events), self
 
     assert {:ok, ^agg_id, %Event{event: Events.c(ItemAdded, ^agg_id, ^item3)}} =
@@ -136,6 +148,6 @@ defmodule CommandDispatcherTest do
       %{agg_id: agg_id, item: item} do
 
     assert {:ok, ^agg_id, :timeout} = CommandRouterExample.dispatch_wait_for(
-      Commands.c(AddItem, agg_id, item), [Events], timeout: 0)
+      Commands.c(AddItem, agg_id, item), [Events], fn _e -> true end, timeout: 0)
   end
 end
