@@ -86,7 +86,10 @@ defmodule Neuryt.EventBus do
   """
   @spec list_subscribers(any) :: [pid]
   def list_subscribers({event_name, agg_id}) do
-    :pg2.get_local_members event_group(event_name, agg_id)
+    case :pg2.get_local_members event_group(event_name, agg_id) do
+      {:error, {:no_such_group, _}} -> []
+      x -> x
+    end
   end
   def list_subscribers(event_name) do
     :pg2.get_local_members event_group(event_name)

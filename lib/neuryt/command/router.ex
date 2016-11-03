@@ -58,6 +58,11 @@ defmodule Neuryt.Command.Router do
           auto_unsubscribe: true
         ]
         timeout = Keyword.get opts, :timeout
+        events =
+          events
+          |> Enum.reject(fn e ->
+            e |> Neuryt.EventBus.list_subscribers |> Enum.member?(self)
+          end)
 
         events
         |> Enum.each(&Neuryt.EventBus.subscribe/1)

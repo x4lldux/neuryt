@@ -144,6 +144,17 @@ defmodule CommandDispatcherTest do
     refute Enum.member? EventBus.list_subscribers(Events), self
   end
 
+  test "`dispatch_wait_for` doesn't unsubscribe from events you already are subscribed to",
+    %{agg_id: agg_id, item: item, item2: item2, item3: item3} do
+    alias Neuryt.EventBus
+
+    EventBus.subscribe Events
+    assert {:ok, ^agg_id, %Event{event: Events.c(ItemAdded, ^agg_id, ^item)}} =
+      CommandRouterExample.dispatch_wait_for(Commands.c(AddItem, agg_id, item),
+        [Events], fn _e -> true end, auto_unsubscribe: true)
+    assert Enum.member? EventBus.list_subscribers(Events), self
+  end
+
   test "`dispatch_wait_for` {:ok, agg_id, :timeout} timeout when no message is received within given timeout",
       %{agg_id: agg_id, item: item} do
 
